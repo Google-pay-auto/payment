@@ -2,6 +2,24 @@ import telebot
 from telebot import types
 import sqlite3
 
+from threading import Thread
+import http.server
+import socketserver
+import os
+
+def run_dummy_server():
+    PORT = int(os.environ.get("PORT", 8080))
+    Handler = http.server.SimpleHTTPRequestHandler
+    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+        httpd.serve_forever()
+
+# تشغيل السيرفر الوهمي في مسار منفصل لمنع Render من إغلاق البوت
+Thread(target=run_dummy_server, daemon=True).start()
+
+
+
+
+
 # إعداد البوت
 API_TOKEN = '8968589592:AAHmfyCRkM4Xladdy3c7ct8qalchU4OFI-s'  # ⚠️ يفضل عمل Revoke وتغييره لاحقاً للأمان
 ADMIN_USERNAME = '@mbvvhjjbb'
